@@ -55,6 +55,7 @@ class CreateSearchIndex extends BuildTask
                     $newEntry->SiteTree = $entry->getPage()->ID;
                 } else {
                     $OutputTitle = $seachHeroConfig['OutputTitle'];
+                    Versioned::set_reading_mode(Versioned::LIVE);
                     $newEntry->Title = $entry->$OutputTitle;
 
                     $newEntry->LinkToDataObject = $entry->Link();

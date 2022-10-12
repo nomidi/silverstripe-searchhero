@@ -62,6 +62,7 @@ class SearchHeroExtension extends DataExtension
             } else {
                 $OutputTitle = $seachHeroConfig['OutputTitle'];
                 $FindEntry->Title = $this->owner->$OutputTitle;
+                Versioned::set_reading_mode(Versioned::LIVE);
                 $FindEntry->LinkToDataObject = $this->owner->Link();
             }
 
@@ -79,6 +80,7 @@ class SearchHeroExtension extends DataExtension
                 } else {
                     $OutputTitle = $seachHeroConfig['OutputTitle'];
                     $newEntry->Title = $this->owner->$OutputTitle;
+                    Versioned::set_reading_mode(Versioned::LIVE);
                     $newEntry->LinkToDataObject = $this->owner->Link();
                 }
                 $newEntry->write();
