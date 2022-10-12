@@ -1,0 +1,24 @@
+{
+    "name": "nomidi/silverstripe-searchhero",
+    "description": "Simple search extension via DataObjects in Silverstripe",
+    "version": "0.0.1",
+    "type": "silverstripe-vendormodule",
+    "authors": [
+        {
+            "name": "Bastian Fritsch",
+            "email": "hallo@kooperative-web.de",
+            "homepage": "http://www.kooperative-web.de/",
+            "role": "Developer"
+        }
+    ],
+    "extra": {
+        "installer-name": "silverstripe-searchhero"
+    },
+    "support": {
+        "issues": "https://github.com/nomidi/silverstripe-searchhero/issues"
+    },
+    "license": "BSD-3-Clause",
+    "require": {
+        "silverstripe/framework": "^4.1"
+    }
+}
