@@ -20,9 +20,7 @@
     "license": "BSD-3-Clause",
     "require": {
         "php": "^7.4 || ^8.0",
-        "silverstripe/framework": "^4.10@dev",
-        "silverstripe/cms": "^4.7@dev",
-        "silverstripe/vendor-plugin": "^1"
+        "silverstripe/framework": "^4.10@dev"
     },
     "minimum-stability": "dev",
     "prefer-stable": true
