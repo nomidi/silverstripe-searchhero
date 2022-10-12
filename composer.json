@@ -19,6 +19,11 @@
     },
     "license": "BSD-3-Clause",
     "require": {
-        "silverstripe/framework": "^4.1"
-    }
+        "php": "^7.4 || ^8.0",
+        "silverstripe/framework": "^4.10@dev",
+        "silverstripe/cms": "^4.7@dev",
+        "silverstripe/vendor-plugin": "^1"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
