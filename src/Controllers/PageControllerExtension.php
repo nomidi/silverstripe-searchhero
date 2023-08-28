@@ -35,6 +35,7 @@ class PageControllerExtension extends Extension
         return $this->owner->customise([
             'Layout' => $this->owner
                 ->customise([
+                             'Query' => $data['Title'],
                     'Results' => $results,
                 ])
                 ->renderWith(['kw\searchhero\SearchHeroForm_results']),
