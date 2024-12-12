@@ -64,7 +64,7 @@ class SearchHeroEntry extends DataObject
     {
         $this->seachHeroClasses = Config::inst()->get('kw\searchhero\CreateSearchIndex', 'Classes');
         if (!is_array($this->seachHeroClasses)) {
-            trigger_error('No CreateSearchIndex in yml.', E_USER_ERROR);
+          #  trigger_error('No CreateSearchIndex in yml.', E_USER_ERROR);
         }
     }
 

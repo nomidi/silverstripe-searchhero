@@ -75,7 +75,10 @@ class CreateSearchIndex extends BuildTask
     {
         $return = "";
         foreach ($saveFields['Fields'] as $fieldkey => $fieldvar) {
-            $return .= strip_tags($entry->$fieldvar).' ';
+            if (!is_null($entry->$fieldvar)) {
+                $return .= strip_tags($entry->$fieldvar).' ';
+            }
+
         }
 
         return $return;

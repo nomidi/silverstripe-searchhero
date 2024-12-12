@@ -92,11 +92,12 @@ class SearchHeroExtension extends DataExtension
     {
         $return = "";
         foreach ($saveFields['Fields'] as $fieldkey => $fieldvar) {
-            $return .= strip_tags($this->owner->$fieldvar).' ';
+            if (!is_null($this->owner->$fieldvar)) {
+                $return .= strip_tags($this->owner->$fieldvar).' ';
+            }
         }
 
         return $return;
     }
-
 
 }
