@@ -46,9 +46,10 @@ class SearchHeroEntry extends DataObject
 
     public static function getData($search)
     {
-        return SearchHeroEntry::get()->filter(
-            ['Content:PartialMatch' => $search]
+        $data = SearchHeroEntry::get()->filter(
+            ['Content:PartialMatch' => $search, 'SiteTreeID:Not' => 0]
         );
+        return $data;
     }
 
     public function requireDefaultRecords()
@@ -64,7 +65,7 @@ class SearchHeroEntry extends DataObject
     {
         $this->seachHeroClasses = Config::inst()->get('kw\searchhero\CreateSearchIndex', 'Classes');
         if (!is_array($this->seachHeroClasses)) {
-          #  trigger_error('No CreateSearchIndex in yml.', E_USER_ERROR);
+            #  trigger_error('No CreateSearchIndex in yml.', E_USER_ERROR);
         }
     }
 
@@ -72,7 +73,7 @@ class SearchHeroEntry extends DataObject
     {
         foreach ($this->seachHeroClasses as $class) {
             if (!class_exists($class)) {
-                trigger_error('Class '.$class.' not found.', E_USER_ERROR);
+                trigger_error('Class ' . $class . ' not found.', E_USER_ERROR);
             }
         }
     }
@@ -82,15 +83,15 @@ class SearchHeroEntry extends DataObject
         foreach ($this->seachHeroClasses as $class) {
             $seachHeroConfig = Config::inst()->get($class, 'searchHero');
             if (!is_array($seachHeroConfig)) {
-                trigger_error($class.' no searchHeroFields in yml.', E_USER_ERROR);
+                trigger_error($class . ' no searchHeroFields in yml.', E_USER_ERROR);
             }
             $object = new $class;
             if (!$object instanceof BaseElement) {
                 if (!array_key_exists('OutputTitle', $seachHeroConfig)) {
-                    trigger_error($class.' no OutputTitle in yml.', E_USER_ERROR);
+                    trigger_error($class . ' no OutputTitle in yml.', E_USER_ERROR);
                 }
                 if (!method_exists($class, 'Link')) {
-                    trigger_error($class.' no Link() function found.', E_USER_ERROR);
+                    trigger_error($class . ' no Link() function found.', E_USER_ERROR);
                 }
             }
         }
@@ -156,7 +157,7 @@ class SearchHeroEntry extends DataObject
     {
         $return = "";
         foreach ($saveFields['Fields'] as $fieldkey => $fieldvar) {
-            $return .= strip_tags($entry->$fieldvar).' ';
+            $return .= strip_tags($entry->$fieldvar) . ' ';
         }
 
         return $return;
