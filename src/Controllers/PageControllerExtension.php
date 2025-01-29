@@ -19,19 +19,20 @@ class PageControllerExtension extends Extension
 
     public function SearchHeroForm()
     {
-        if (isset($_POST['action_doSearch'])) {
-            $searchvalue = $_POST['Title'];
-        } else {
-            $searchvalue = "";
-        }
+        $searchvalue = isset($_GET['Title']) ? $_GET['Title'] : "";
+
         $fields = new FieldList(
             new TextField('Title', _t("SearchHero.SearchField", "Search"), $searchvalue)
         );
+
         $actions = new FieldList(
             new FormAction('doSearch', _t("SearchHero.Submit", "Submit"))
         );
 
-        return new Form($this->owner, 'SearchHeroForm', $fields, $actions);
+        // Formular mit GET-Methode erstellen
+        $form = new Form($this->owner, 'SearchHeroForm', $fields, $actions);
+        $form->setFormMethod('GET');
+        return $form;
     }
 
     public function doSearch($data, $form)
