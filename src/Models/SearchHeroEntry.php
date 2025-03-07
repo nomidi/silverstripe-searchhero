@@ -10,6 +10,7 @@ use SilverStripe\Core\Config\Config;
 use SilverStripe\Forms\TextareaField;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
+use SilverStripe\ORM\Queries\SQLSelect;
 
 class SearchHeroEntry extends DataObject
 {
@@ -46,10 +47,18 @@ class SearchHeroEntry extends DataObject
 
     public static function getData($search)
     {
-        $data = SearchHeroEntry::get()->filter(
-            ['Content:PartialMatch' => $search, 'SiteTreeID:Not' => 0]
-        );
-        return $data;
+        $query = new SQLSelect();
+        $query->setSelect(['ID'])
+            ->setFrom('"SearchHeroEntry"')
+            ->setWhere([
+                "\"Content\" LIKE ?" => "%$search%",
+                "\"SiteTreeID\" <> 0"
+            ])
+            ->addWhere("ID IN (SELECT MIN(ID) FROM \"SearchHeroEntry\" GROUP BY \"SiteTreeID\")");
+
+        $result = $query->execute();
+
+        return SearchHeroEntry::get()->filter(['ID' => $result->column('ID')]);
     }
 
     public function requireDefaultRecords()
