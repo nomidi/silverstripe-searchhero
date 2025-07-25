@@ -4,12 +4,14 @@ namespace kw\searchhero;
 
 
 use Page;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Extension;
 use SilverStripe\Dev\Debug;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\Form;
 use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\TextField;
+use SilverStripe\ORM\PaginatedList;
 
 class PageControllerExtension extends Extension
 {
@@ -37,13 +39,24 @@ class PageControllerExtension extends Extension
 
     public function doSearch($data, $form)
     {
-        $results = SearchHeroEntry::getData($data['Title']);
+
+        $request = $this->owner->getRequest();
+        $query = $data['Title'] ?? '';
+
+        $results = SearchHeroEntry::getData($query);
+
+        // Hole Limit aus Konfiguration
+        $defaultLimit = (int)Config::inst()->get(self::class, 'default_results_limit');
+
+        $paginatedResults = PaginatedList::create($results, $request);
+        $paginatedResults->setPageLength($defaultLimit);
 
         return $this->owner->customise([
             'Layout' => $this->owner
                 ->customise([
                     'Query' => $data['Title'],
                     'Results' => $results,
+                    'Limit' => $defaultLimit,
                 ])
                 ->renderWith(['kw\searchhero\SearchHeroForm_results']),
         ])->renderWith(['Page']);

@@ -1,3 +1,5 @@
 SilverStripe\CMS\Controllers\ContentController:
   extensions:
     - kw\searchhero\PageControllerExtension
+kw\searchhero\PageControllerExtension:
+  default_results_limit: 12

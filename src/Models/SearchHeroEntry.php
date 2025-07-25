@@ -7,7 +7,9 @@ use DateTime;
 use DNADesign\Elemental\Models\BaseElement;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Convert;
 use SilverStripe\Forms\TextareaField;
+use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\ORM\Queries\SQLSelect;
@@ -47,20 +49,40 @@ class SearchHeroEntry extends DataObject
 
     public static function getData($search)
     {
+// Sicherstellen, dass die Suche nicht leer ist
+        if (empty($search)) {
+            return DataList::create(SearchHeroEntry::class)->filter('ID', 0); // Gibt eine leere Liste zurück
+        }
+
+        // Sucheingabe sicher für SQL-Query machen
+        $safeSearch = Convert::raw2sql($search);
+
+
         $query = new SQLSelect();
         $query->setSelect(['ID'])
-            ->setFrom('"SearchHeroEntry"')
+            ->setFrom('`SearchHeroEntry`')
             ->setWhere([
-                "\"Content\" LIKE ?" => "%$search%",
-                "\"SiteTreeID\" <> 0"
+                "`Content` LIKE ?" => "%$safeSearch%",
+                "`SiteTreeID` <> 0"
             ])
-            ->addWhere("ID IN (SELECT MIN(ID) FROM \"SearchHeroEntry\" GROUP BY \"SiteTreeID\")");
+            ->addWhere("ID IN (
+        SELECT MIN(`ID`)
+        FROM `SearchHeroEntry`
+        WHERE `SiteTreeID` IN (SELECT `ID` FROM `SiteTree_Live`)
+        GROUP BY `SiteTreeID`
+    )");
 
+        // SQL-Abfrage ausführen
         $result = $query->execute();
+        $ids = $result->column('ID');
 
-        return SearchHeroEntry::get()->filter(['ID' => $result->column('ID')]);
+        // Falls keine IDs gefunden wurden, eine leere Liste zurückgeben
+        if (empty($ids)) {
+            return DataList::create(SearchHeroEntry::class)->filter('ID', 0);
+        }
+
+        return SearchHeroEntry::get()->filter(['ID' => $ids]);
     }
-
     public function requireDefaultRecords()
     {
         parent::requireDefaultRecords();
