@@ -3,3 +3,6 @@ SilverStripe\CMS\Controllers\ContentController:
     - kw\searchhero\PageControllerExtension
 kw\searchhero\PageControllerExtension:
   default_results_limit: 12
+kw\searchhero\SearchHeroEntry:
+  search_mode: like                # like | natural | boolean
+  allow_multiple_per_page: true   # true = mehrere Treffer pro Seite

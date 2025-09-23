@@ -7,12 +7,12 @@ use DateTime;
 use DNADesign\Elemental\Models\BaseElement;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\Core\Convert;
 use SilverStripe\Forms\TextareaField;
-use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\ORM\Queries\SQLSelect;
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\DataList;
 
 class SearchHeroEntry extends DataObject
 {
@@ -35,7 +35,23 @@ class SearchHeroEntry extends DataObject
         'Content',
     ];
 
+    private static $indexes = [
+        'FulltextSearch' => [
+            'type' => 'fulltext',
+            'columns' => ['Content']
+        ]
+    ];
     private static $seachHeroClasses;
+
+
+    /**
+     * Opt-in: Sollen mehrere Treffer pro Seite erlaubt sein?
+     * Kann in YML überschrieben werden:
+     *
+     * kw\searchhero\SearchHeroEntry:
+     *   allow_multiple_per_page: true
+     */
+    private static $allow_multiple_per_page = false;
 
 
     public function getCMSFields()
@@ -49,40 +65,63 @@ class SearchHeroEntry extends DataObject
 
     public static function getData($search)
     {
-// Sicherstellen, dass die Suche nicht leer ist
+        // 1. Falls Suche leer → leere Liste zurückgeben
         if (empty($search)) {
-            return DataList::create(SearchHeroEntry::class)->filter('ID', 0); // Gibt eine leere Liste zurück
+            return DataList::create(SearchHeroEntry::class)->filter('ID', 0);
         }
 
-        // Sucheingabe sicher für SQL-Query machen
+        // 2. Eingabe absichern
         $safeSearch = Convert::raw2sql($search);
 
+        // 3. Konfigurierbare Optionen aus YAML
+        $searchMode     = Config::inst()->get(self::class, 'search_mode') ?: 'like'; // like | natural | boolean
+        $allowMultiple  = Config::inst()->get(self::class, 'allow_multiple_per_page') ?: false;
 
+        // 4. Grundgerüst der Abfrage
         $query = new SQLSelect();
-        $query->setSelect(['ID'])
-            ->setFrom('`SearchHeroEntry`')
-            ->setWhere([
-                "`Content` LIKE ?" => "%$safeSearch%",
-                "`SiteTreeID` <> 0"
-            ])
-            ->addWhere("ID IN (
-        SELECT MIN(`ID`)
-        FROM `SearchHeroEntry`
-        WHERE `SiteTreeID` IN (SELECT `ID` FROM `SiteTree_Live`)
-        GROUP BY `SiteTreeID`
-    )");
+        $query->setFrom('`SearchHeroEntry`')
+            ->setSelect(['ID'])
+            ->addWhere('`SiteTreeID` <> 0');
 
-        // SQL-Abfrage ausführen
+        // 5. Suche-Teil abhängig vom Modus
+        switch ($searchMode) {
+            case 'boolean':
+                $query->addWhere("MATCH (`Content`) AGAINST ('$safeSearch' IN BOOLEAN MODE)");
+                break;
+
+            case 'natural':
+                $query->addWhere("MATCH (`Content`) AGAINST ('$safeSearch' IN NATURAL LANGUAGE MODE)");
+                break;
+
+            case 'like':
+            default:
+                $query->addWhere(["`Content` LIKE ?" => "%$safeSearch%"]);
+                break;
+        }
+
+        // 6. Gruppierung: nur ein Treffer pro Seite oder mehrere
+        if (!$allowMultiple) {
+            // EIN Eintrag pro Seite → MIN(ID) je SiteTreeID
+            $query->setSelect(['MIN("SearchHeroEntry"."ID") AS "ID"'])
+                ->setGroupBy('"SearchHeroEntry"."SiteTreeID"');
+        } else {
+            // ALLE Treffer → trotzdem nur Live-Seiten
+            $query->setSelect(['"SearchHeroEntry"."ID"']);
+        }
+
+        // 7. Ergebnisse holen
         $result = $query->execute();
-        $ids = $result->column('ID');
+        $ids    = $result->column('ID');
 
-        // Falls keine IDs gefunden wurden, eine leere Liste zurückgeben
+        // 8. Fallback: leere Liste wenn nichts gefunden
         if (empty($ids)) {
             return DataList::create(SearchHeroEntry::class)->filter('ID', 0);
         }
 
+        // 9. Gefundene IDs zurückgeben
         return SearchHeroEntry::get()->filter(['ID' => $ids]);
     }
+
     public function requireDefaultRecords()
     {
         parent::requireDefaultRecords();
