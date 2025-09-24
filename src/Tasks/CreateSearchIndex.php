@@ -52,7 +52,11 @@ class CreateSearchIndex extends BuildTask
                 $newEntry->RelationID = $entry->ID;
 
                 if ($entry instanceof BaseElement) {
-                    $newEntry->SiteTree = $entry->getPage()->ID;
+                    $page = $entry->getPage();
+                    if ($page && $page->exists()) {
+                        $newEntry->SiteTree = $page->ID;
+                        $newEntry->Title    = $page->Title;
+                    }
                 } else {
                     $OutputTitle = $seachHeroConfig['OutputTitle'];
                     Versioned::set_reading_mode(Versioned::LIVE);

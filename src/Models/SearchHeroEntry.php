@@ -38,7 +38,7 @@ class SearchHeroEntry extends DataObject
     private static $indexes = [
         'FulltextSearch' => [
             'type' => 'fulltext',
-            'columns' => ['Content']
+            'columns' => ['Content', 'Title']
         ]
     ];
     private static $seachHeroClasses;
@@ -74,8 +74,8 @@ class SearchHeroEntry extends DataObject
         $safeSearch = Convert::raw2sql($search);
 
         // 3. Konfigurierbare Optionen aus YAML
-        $searchMode     = Config::inst()->get(self::class, 'search_mode') ?: 'like'; // like | natural | boolean
-        $allowMultiple  = Config::inst()->get(self::class, 'allow_multiple_per_page') ?: false;
+        $searchMode = Config::inst()->get(self::class, 'search_mode') ?: 'like'; // like | natural | boolean
+        $allowMultiple = Config::inst()->get(self::class, 'allow_multiple_per_page') ?: false;
 
         // 4. Grundgerüst der Abfrage
         $query = new SQLSelect();
@@ -86,16 +86,21 @@ class SearchHeroEntry extends DataObject
         // 5. Suche-Teil abhängig vom Modus
         switch ($searchMode) {
             case 'boolean':
-                $query->addWhere("MATCH (`Content`) AGAINST ('$safeSearch' IN BOOLEAN MODE)");
+                $query->addWhere("MATCH (`Content`, `Title`) AGAINST ('$safeSearch' IN BOOLEAN MODE)");
                 break;
 
             case 'natural':
-                $query->addWhere("MATCH (`Content`) AGAINST ('$safeSearch' IN NATURAL LANGUAGE MODE)");
+                $query->addWhere("MATCH (`Content`, `Title`) AGAINST ('$safeSearch' IN NATURAL LANGUAGE MODE)");
                 break;
 
             case 'like':
             default:
-                $query->addWhere(["`Content` LIKE ?" => "%$safeSearch%"]);
+                $query->addWhere([
+                    "`Content` LIKE ? OR `Title` LIKE ?" => [
+                        "%$safeSearch%",
+                        "%$safeSearch%"
+                    ]
+                ]);
                 break;
         }
 
@@ -111,7 +116,7 @@ class SearchHeroEntry extends DataObject
 
         // 7. Ergebnisse holen
         $result = $query->execute();
-        $ids    = $result->column('ID');
+        $ids = $result->column('ID');
 
         // 8. Fallback: leere Liste wenn nichts gefunden
         if (empty($ids)) {
