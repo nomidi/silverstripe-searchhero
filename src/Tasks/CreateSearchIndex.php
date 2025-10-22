@@ -6,14 +6,16 @@ use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\BuildTask;
 use SilverStripe\ORM\DB;
+use SilverStripe\PolyExecution\PolyOutput;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\Security;
 use SilverStripe\Versioned\Versioned;
+use Symfony\Component\Console\Input\InputInterface;
 
 class CreateSearchIndex extends BuildTask
 {
     private static $segment = 'CreateSearchIndex';
-    protected $title = 'Reset and create Search-Hero Index.';
+    protected string $title = 'Reset and create Search-Hero Index.';
 
     public function init()
     {
@@ -26,13 +28,30 @@ class CreateSearchIndex extends BuildTask
 
     }
 
-    public function run($request)
+    public function execute(InputInterface $input, PolyOutput $output): int
     {
+        // Zugriffsschutz wie vorher: nur CLI, Dev, oder ADMIN
+        if (!Director::is_cli() && !Director::isDev() && !Permission::check('ADMIN')) {
+            Security::permissionFailure();
+            $output->writeln('<error>Permission denied</error>');
+            return 1;
+        }
+
         DB::query('TRUNCATE TABLE `SearchHeroEntry`');
-        $searchHeroClasses = Config::inst()->get('kw\searchhero\CreateSearchIndex', 'Classes');
+        // Welche Klassen indiziert werden?
+        $searchHeroClasses = Config::inst()->get('kw\searchhero\CreateSearchIndex', 'Classes') ?? [];
+        if (empty($searchHeroClasses)) {
+            $output->writeln('<comment>No classes configured at kw\searchhero\CreateSearchIndex.Classes</comment>');
+            return 0;
+        }
 
         $countEntries = [];
         foreach ($searchHeroClasses as $class) {
+            if (!class_exists($class)) {
+                $output->writeln("<comment>Class {$class} not found, skipping.</comment>");
+                continue;
+            }
+
             $object = new $class;
             if ($object->hasExtension(Versioned::class)) {
                 $ClassEntries = Versioned::get_by_stage($class, Versioned::LIVE);
@@ -68,11 +87,11 @@ class CreateSearchIndex extends BuildTask
                 $countEntries[$class] = $countEntries[$class] + 1;
             }
         }
-        $out = "";
         foreach ($countEntries as $classname => $entries) {
-            $out .= $classname.' hat '.$entries.' Einträge geschrieben.<br>';
+            $output->writeln($classname . ' hat ' . $entries . ' Einträge geschrieben.');
         }
-        echo $out;
+
+        return 0;
     }
 
     public function getAllContentFields($saveFields, $entry)

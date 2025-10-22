@@ -4,24 +4,24 @@ namespace kw\searchhero;
 
 use DNADesign\Elemental\Models\BaseElement;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Extension;
 use SilverStripe\ORM\Queries\SQLDelete;
 use SilverStripe\Versioned\Versioned;
 
 /**
  * Class MenuItemExtension
  */
-class SearchHeroExtension extends DataExtension
+class SearchHeroExtension extends Extension
 {
-    public function onAfterWrite()
+    public function onAfterWrite(): void
     {
-        parent::onAfterWrite();
         if (!$this->owner->hasExtension(Versioned::class)) {
+
             $this->UpdateOrSave();
         }
     }
 
-    public function onAfterPublish(&$original)
+    protected function onAfterPublish()
     {
         $this->UpdateOrSave();
     }
@@ -31,9 +31,8 @@ class SearchHeroExtension extends DataExtension
         $this->DeleteSearchHeroEntry($this->owner->ID, $this->owner->ClassName);
     }
 
-    public function onAfterDelete()
+    public function onAfterDelete(): void
     {
-        parent::onAfterDelete();
         $this->DeleteSearchHeroEntry($this->owner->ID, $this->owner->ClassName);
     }
 
@@ -53,7 +52,6 @@ class SearchHeroExtension extends DataExtension
         $FindEntry = SearchHeroEntry::get()->filter(
             ['RelationID' => $this->owner->ID, 'RelationClassName' => $this->owner->ClassName]
         )->First();
-
 
         if ($FindEntry) {
             $FindEntry->Content = $this->getAllContentFields($seachHeroConfig);
