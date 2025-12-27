@@ -25,6 +25,7 @@ class SearchHeroEntry extends DataObject
         'RelationID' => 'Int',
         'LinkToDataObject' => 'Varchar',
         'Title' => 'Varchar',
+        'ParentClassName' => 'Varchar(255)',
     ];
 
     private static $has_one = [
@@ -200,6 +201,8 @@ class SearchHeroEntry extends DataObject
                         $FindEntry->Content = $this->getAllContentFields($seachHeroConfig, $entry);
                         if ($entry instanceof BaseElement) {
                             $FindEntry->SiteTree = $entry->getPage()->ID;
+                            $FindEntry->Title = $entry->getTitle();
+                            $FindEntry->ParentClassName = $entry->getPage()->ClassName;
                         } else {
                             $OutputTitle = $seachHeroConfig['OutputTitle'];
                             $FindEntry->Title = $entry->$OutputTitle;
@@ -215,6 +218,7 @@ class SearchHeroEntry extends DataObject
 
                     if ($entry instanceof BaseElement) {
                         $newEntry->SiteTree = $entry->getPage()->ID;
+                        $FindEntry->ParentClassName = $entry->getPage()->ClassName;
                     } else {
 
                         $OutputTitle = $seachHeroConfig['OutputTitle'];

@@ -75,6 +75,7 @@ class CreateSearchIndex extends BuildTask
                     if ($page && $page->exists()) {
                         $newEntry->SiteTree = $page->ID;
                         $newEntry->Title    = $page->Title;
+                        $newEntry->ParentClassName = $page->ClassName;
                     }
                 } else {
                     $OutputTitle = $seachHeroConfig['OutputTitle'];
