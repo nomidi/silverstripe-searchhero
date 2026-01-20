@@ -236,7 +236,7 @@ class SearchHeroEntry extends DataObject
     {
         $return = "";
         foreach ($saveFields['Fields'] as $fieldkey => $fieldvar) {
-            $return .= strip_tags($entry->$fieldvar) . ' ';
+            $return .= strip_tags((string)($entry->$fieldvar ?? '')) . ' ';
         }
 
         return $return;
