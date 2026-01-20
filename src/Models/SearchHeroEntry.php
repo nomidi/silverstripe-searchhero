@@ -217,10 +217,20 @@ class SearchHeroEntry extends DataObject
                     $newEntry->RelationID = $entry->ID;
 
                     if ($entry instanceof BaseElement) {
-                        $newEntry->SiteTree = $entry->getPage()->ID;
-                        $FindEntry->ParentClassName = $entry->getPage()->ClassName;
-                    } else {
+                        $page = $entry->getPage();
 
+                        if ($page && $page->ID) {
+                            $newEntry->SiteTree = $page->ID;
+                            $newEntry->ParentClassName = $page->ClassName;
+                        } else {
+                            // Element hat keine Seite (z.B. verwaist) → Indexeintrag trotzdem schreiben, aber ohne SiteTree
+                            // $newEntry->SiteTree = 0;
+                            // $newEntry->ParentClassName = null;
+
+                            // optional: wenn du lieber solche Einträge komplett überspringen willst:
+                            continue;
+                        }
+                    } else {
                         $OutputTitle = $seachHeroConfig['OutputTitle'];
                         $newEntry->Title = $entry->$OutputTitle;
                         $newEntry->LinkToDataObject = $entry->Link();
