@@ -1,4 +1,5 @@
 <div>
+    <% if $Results %>
     <ul>
         <% loop $Results %>
             <% if $SiteTree %>
@@ -11,4 +12,7 @@
 
         <% end_loop %>
     </ul>
+    <% else %>
+    $SiteConfig.SearchNoResultsText
+    <% end_if %>
 </div>

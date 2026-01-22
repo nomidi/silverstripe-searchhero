@@ -1,3 +1,10 @@
+---
+Name: app-search-settings
+---
+SilverStripe\SiteConfig\SiteConfig:
+  extensions:
+    - App\Extensions\SiteConfigSearchExtension
+
 SilverStripe\CMS\Controllers\ContentController:
   extensions:
     - kw\searchhero\PageControllerExtension
